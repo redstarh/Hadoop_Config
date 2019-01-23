@@ -1,0 +1,161 @@
+==== hortonworks hdp 2.6.4 설치 ====
+  * 설치 문서 : https://docs.hortonworks.com/HDPDocuments/Ambari-2.6.1.5/bk_ambari-installation/content/install-ambari-server-rhel7.html
+
+=== 0. jdk 설치 ===
+<code bash>
+yum -y install java-1.8.0-openjdk-devel.x86_64
+</code>
+
+
+=== 1. ambari 설치 ===
+<code bash>
+wget -nv http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.2.2/ambari.repo -O /etc/yum.repos.d/ambari.repo
+yum -y install ambari-server
+</code>
+
+=== 2. postgres 설정 ===
+<code bash>
+sudo -u postgres psql 
+CREATE DATABASE hive;
+CREATE USER hive WITH PASSWORD 'hive123';
+GRANT ALL PRIVILEGES ON DATABASE hive TO hive;
+
+vi /var/lib/pgsql/data/pg_hba.conf
+local  all  ambari,mapred,hive md5
+host  all   ambari,mapred,hive 0.0.0.0/0  md5
+host  all   ambari,mapred,hive ::/0 md5
+service postgresql restart
+</code>
+
+=== 2.1 Maria DB 설정 ===
+<code bash>
+# centos 에 yum으로 설치하는 mariadb는 최신버전이 아님...
+# 이미 설치되어 있는지 확인
+sudo yum list mariadb
+
+# 설치되어 있는게 확인되면 삭제
+sudo yum remove mariadb*
+
+# repository 등록
+sudo vi /etc/yum.repos.d/MariaDB.repo
+
+# MariaDB 10.3 CentOS repository list - created 2018-06-12 07:50 UTC
+# http://downloads.mariadb.org/mariadb/repositories/
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/10.3/centos7-amd64
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+
+# 등록된 repository 정보로 mariadb 설치
+sudo yum install MariaDB-server
+
+# 설치 확인
+sudo rpm -qa | grep MariaDB
+
+# 설치된 후 서비스 띄우기
+sudo systemctl start mariadb
+
+# root 계정 비번 변경
+sudo /usr/bin/mysqladmin -u root password 'ws32meff'
+
+# root 로 접속
+mysql -u root -p
+
+CREATE USER 'ambari'@'%' IDENTIFIED BY 'ambari123';
+GRANT ALL PRIVILEGES ON *.* TO 'ambari'@'%';
+CREATE USER 'ambari'@'localhost' IDENTIFIED BY 'ambari123';
+GRANT ALL PRIVILEGES ON *.* TO 'ambari'@'localhost';
+CREATE USER 'ambari'@'eo-bigdata-01' IDENTIFIED BY 'ambari123';
+GRANT ALL PRIVILEGES ON *.* TO 'ambari'@'eo-bigdata-01';
+FLUSH PRIVILEGES;
+
+mysql -u ambari -p
+CREATE DATABASE ambari;
+USE ambari;
+SOURCE /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql;
+
+CREATE USER 'hive'@'%' IDENTIFIED BY 'hive123';
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'%';
+CREATE USER 'hive'@'localhost' IDENTIFIED BY 'hive123';
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'localhost';
+CREATE USER 'hive'@'eo-bigdata-01' IDENTIFIED BY 'hive123';
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'eo-bigdata-01';
+FLUSH PRIVILEGES;
+
+CREATE DATABASE hive;
+USE hive;
+
+CREATE USER 'oozie'@'%' IDENTIFIED BY 'oozie123';
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'%';
+CREATE USER 'oozie'@'localhost' IDENTIFIED BY 'oozie123';
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'localhost';
+CREATE USER 'oozie'@'eo-bigdata-01' IDENTIFIED BY 'oozie123';
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'eo-bigdata-01';
+FLUSH PRIVILEGES;
+
+CREATE DATABASE oozie;
+USE oozie;
+</code>
+
+=== 3. ambari-server setup ===
+<code bash>
+
+jar 다운로드
+mkdir /usr/share/java
+cd /usr/share/java
+
+# postgresql
+wget https://jdbc.postgresql.org/download/postgresql-42.2.4.jar
+
+# mysql
+https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.47.tar.gz
+
+sudo ambari-server setup
+
+# jdbc 드라이버 등록
+# postgres
+ambari-server setup  --jdbc-db=postgres --jdbc-driver=/usr/share/java/postgresql-42.2.4.jar
+# mysql
+ambari-server setup  --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java-5.1.47.jar
+
+# 위 방법이 안될시...
+vi /etc/ambari-server/conf/ambari.properties
+# postgres
+server.jdbc.driver.path=/usr/share/java/postgresql-42.2.4.jar
+
+# mysql
+server.jdbc.driver.path=/usr/share/java/mysql-connector-java-5.1.47.jar
+
+sudo ambari-server start
+</code>
+
+=== 4. 기타 설정 ===
+== 가상화에 설치시 https 관련 이슈 발생할 경우 ==
+  * 참고 : https://community.hortonworks.com/questions/121978/openssl-compatibility.html?childToView=138080#answer-138080
+<code>
+# Confirm Hosts 아래 에러 발생시
+ERROR - SSLError: Failed to connect. Please check openssl library versions
+
+vi /etc/ambari-agent/conf/ambari-agent.ini
+[security]
+force_https_protocol=PROTOCOL_TLSv1_2
+
+vi /etc/python/cert-verification.cfg 
+[https] 
+verify=disable
+</code>
+
+
+== oozie, hive 데이터 베이스를 Mysql 사용시 url 에 아래 내용 추가 후 테스트 ==
+<code>
+# jdbc url 체크시...
+?serverTimezone=UTC
+</code>
+
+
+== hive view2 에서 쿼리 실행이 안될때 (E090 HDFS020) ==
+<code>
+HDFS -> Config -> Advanced -> custom.core.site
+hadoop.proxyuser.root.hosts=* 로 변경
+</code>
