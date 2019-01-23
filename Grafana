@@ -1,0 +1,43 @@
+===== Grafana =====
+
+  - install binary : /usr/sbin/grafana-server
+  - init.d script : /etc/init.d/grafana-server
+  - install default file (environment vars) : /etc/sysconfig/grafana-server
+  - configuration file : /etc/grafana/grafana.ini
+  - Installs systemd service (if systemd is available) name : grafana-server.service
+  - log file : /var/log/grafana/grafana.log
+  - default configuration specifies an sqlite3 database : /var/lib/grafana/grafana.db
+  - default site port : 3000
+  - default login info : admin/admin
+
+<code bash>  
+# Download
+  wget ftp://rpmfind.net/linux/centos/6.8/os/x86_64/Packages/freetype-2.3.11-17.el6.x86_64.rpm
+  wget ftp://rpmfind.net/linux/centos/6.8/os/x86_64/Packages/fontconfig-2.8.0-5.el6.x86_64.rpm
+  wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-4.2.0-1.x86_64.rpm
+
+# Install
+   rpm -ivh freetype-2.3.11-17.el6.x86_64.rpm
+   rpm -ivh fontconfig-2.8.0-5.el6.x86_64.rpm
+   rpm -Uvh grafana-4.2.0-1.x86_64.rpm 
+
+# Start / Stop
+  service grafana-server start/stop/restart
+
+# booting 시 자동기동
+  chkconfig --add grafana-server
+  systemctl enable grafana-server.service
+  
+# booting 시 자동 기동 list 확인
+  chkconfig --list
+  systemctl list-units --type=service
+
+# login info 변경 (vi /etc/grafana/grafana.ini)
+[security]
+  admin_user = xxxx
+  admin_password = xxxx
+
+</code>
+
+[[http://docs.grafana.org/installation/rpm/]] \\
+http://grafana.org/
