@@ -1,0 +1,41 @@
+===== Flume ====
+==== 1.4 version 설치 ====
+<code bash>
+# initial
+mkdir /svc/download
+cd /svc/download
+
+# 설치
+wget http://archive.apache.org/dist/flume/1.4.0/apache-flume-1.4.0-bin.tar.gz
+tar xvfz apache-flume-1.4.0-bin.tar.gz
+mkdir /svc/dc/software/
+mv apache-flume-1.4.0-bin /svc/dc/software/
+</code>
+
+==== 1.4 version 설정 ====
+/svc/dc/app/flume/lcap-flume-test 에 설정 및 기동 파일 생성 \\
+테스트로 sequence source와 null sink 가 작동되게 되어있음 \\
+
+==== 1.4 version 기동 / 종료 ====
+<code bash>
+/svc/dc/app/flume/lcap-flume-test/startFlume.sh
+/svc/dc/app/flume/lcap-flume-test/stopFlume.sh
+</code>
+
+
+==== heap 설정 ====
+<code bash>
+https://recipe.sktelecom.com:8447/svn/SERVICEONM
+svn : 1600294 / 1600294
+
+
+-Xms32G -Xmx32G -XX:MaxDirectMemorySize=512m -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:MaxPermSize=256m
+
+jmap -heap pid
+
+saturn hdfs 옵션...
+-XX:NewSize=2000m -XX:MaxNewSize=2000m -Xms4000m -Xmx4000m
+-XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSConcurrentMTEnabled -XX:CMSInitiatingOccupancyFraction=70 -XX:
++CMSParallelRemarkEnabled
+-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:<logfile-path> -XX:OnOutOfMemoryError=<dumpfile-path>
+</code>
