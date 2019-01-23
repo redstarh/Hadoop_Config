@@ -1,0 +1,19 @@
+<code java>
+
+val f = udf {
+  new Function1[String,Int] with Serializable {
+    import scala.reflect.runtime.universe._
+    import scala.reflect.runtime.currentMirror
+    import scala.tools.reflect.ToolBox
+
+    lazy val toolbox = currentMirror.mkToolBox()
+    lazy val func = {
+      println("reflected function") // triggered at every worker
+      toolbox.eval(toolbox.parse("(s:String) => 5")).asInstanceOf[String => Int]
+    }
+
+    def apply(s: String): Int = func(s)
+  }
+}
+
+</code>
