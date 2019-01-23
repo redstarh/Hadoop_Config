@@ -1,0 +1,17 @@
+===== Redis =====
+  * 설치 설정이 복잡해서 openit mobile 에서 압축해서 가지고 왔습니다....
+  * 기동 : /svc/dc/software/redis-2.6.16/bin/redis_6379 start
+  * 종료 : /svc/dc/software/redis-2.6.16/bin/redis_6379 stop
+
+<code bash>
+# redis 설치
+cd /svc/download
+wget http://download.redis.io/releases/redis-2.6.16.tar.gz
+tar xzf redis-2.6.16.tar.gz
+cd redis-2.6.16
+make
+cd ..
+mv redis-2.6.16 /svc/dc/software
+
+# 기동
+</code>
