@@ -1,0 +1,104 @@
+==== Hadoop 설치를 위한 OS 설정 ====
+
+  * OS : CentOS 7
+  * 계정 : root/ws32meff, hdfs/ws32meff, enteroak/ws32mef
+
+^HOST^IP^CPU^RAM^DISK^설명^
+|eo-bigdata-01|192.168.10.81|4core|32G|120G|NN, SNN, YRM, HIVE, CLIENT|
+|eo-bigdata-02|192.168.10.82|4core|20G|200G|DN, YNM, KAFKA, ZOOKEEPER|
+|eo-bigdata-03|192.168.10.83|4core|20G|200G|DN, YNM, KAFKA, ZOOKEEPER|
+|eo-bigdata-04|192.168.10.84|4core|20G|200G|DN, YNM, KAFKA, ZOOKEEPER|
+|total| |16core|92G| |
+
+=== 계정 추가 ===
+<code bash>
+adduser hdfs
+adduser enteroak
+</code>
+
+=== HOST 설정 ===
+<code bash>
+vi /etc/hosts
+192.168.10.81 eo-bigdata-01 
+192.168.10.82 eo-bigdata-02 
+192.168.10.83 eo-bigdata-03 
+192.168.10.84 eo-bigdata-04 
+</code>
+
+=== SSH 자동 로그인 ===
+<code>
+su - hdfs 
+# eo-bigdata-01 : ambari-server 설치 서버 및 key 생성 서버
+# eo-bigdata-01,02,03,04 : 자동 로그인 서버
+ 
+# 키 생성
+ssh-keygen -t rsa
+
+# eo-bigdata-01 자기 자신도 자동 로그인 설정
+cat .ssh/id_rsa.pub >> .ssh/authorized_keys
+chmod 644 .ssh/authorized_keys
+ 
+# eo-bigdata-02, 03, 04
+mkdir .ssh
+
+# eo-bigdata-01
+scp .ssh/id_rsa.pub eo-bigdata-02:/home/hdfs/.ssh/authorized_keys
+scp .ssh/id_rsa.pub eo-bigdata-03:/home/hdfs/.ssh/authorized_keys
+scp .ssh/id_rsa.pub eo-bigdata-04:/home/hdfs/.ssh/authorized_keys
+
+# eo-bigdata-02, 03, 04
+chmod 700 .ssh
+chmod 644 .ssh/authorized_keys
+</code>
+
+=== 기본 패키지 설정 ===
+<code bash>
+yum -y install wget telnet open-vm-tools ntp
+yum -y update
+</code>
+
+=== NTP 서버 설정 ===
+<code bash>
+systemctl start ntpd
+systemctl enable ntpd
+</code>
+
+=== SUDO 권한 설정 ===
+<code bash>
+chmod 640 /etc/sudoers
+vi /etc/sudoers
+hdfs ALL=(ALL)      NOPASSWD:ALL
+chmod 440 /etc/sudoers
+</code>
+
+=== UMASK 설정 ===
+<code bash>
+echo umask 0022 >> /etc/profile
+</code>
+
+=== 방화벽 해제 ===
+<code bash>
+systemctl disable firewalld
+systemctl stop firewalld
+</code>
+
+=== selinux 해제 ===
+<code bash>
+vi /etc/selinux/config
+SELINUX=disabled
+</code>
+
+=== ulimit 설정 ===
+<code bash>
+vi /etc/security/limits.conf
+*       -       nofile  32768
+*       -       nproc   65536
+
+vi /etc/security/limits.d/20-nproc.conf
+*       soft       nproc   4096 -> *       soft       nproc   65536
+</code>
+
+=== swap 설정 ===
+<code bash>
+echo vm.swappiness = 0 >> /etc/sysctl.conf
+</code>
