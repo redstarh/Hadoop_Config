@@ -1,0 +1,6 @@
+===== logstash =====
+
+윈도우에서 실행
+  C:\develop\logstash-5.3.1\bin\logstash -f C:\develop\logstash-5.3.1\config\logstash-search.conf --log.level debug
+  
+https://www.elastic.co/guide/en/beats/libbeat/current/logstash-installation.html
