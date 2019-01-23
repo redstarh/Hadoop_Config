@@ -1,0 +1,23 @@
+==== zookeeper GUI ====
+
+<code bash>
+CentOS 6.8 (python 2.6)
+
+rpm -qa | grep python
+python-2.6.6-64.el6.x86_64
+python-pycurl-7.19.0-9.el6.x86_64
+python-iniparse-0.3.1-2.1.el6.noarch
+python-libs-2.6.6-64.el6.x86_64
+python-urlgrabber-3.9.1-11.el6.noarch
+rpm-python-4.8.0-55.el6.x86_64
+newt-python-0.52.11-3.el6.x86_64
+
+
+0. yum install epel-release : yum epel 저장소 추가
+1. yum install python-pip : pip 설치
+2. git clone https://github.com/mijalko/zookeeper_browser.git
+3. cd zookeeper_browser
+4. pip install -r requirements.txt
+
+</code>
+https://github.com/mijalko/zookeeper_browser
