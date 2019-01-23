@@ -1,0 +1,127 @@
+===== KAFKA =====
+
+==== 설치 ====
+<code bash>
+# initial
+mkdir /home/enteroak/downloads
+cd /home/enteroak/downloads
+ 
+# 설치
+wget https://www.apache.org/dyn/closer.cgi?path=/kafka/0.10.0.0/kafka_2.11-0.10.0.1.tgz
+tar xzf kafka_2.11-0.10.0.1.tgz
+
+mv kafka_2.11-0.10.0.1 ../
+
+# zookeeper data 디렉토리 생성
+mkdir -p /home/enteroak/kafka_2.11-0.10.0.1/data/zookeeper
+
+# kafka data 디렉토리 생성
+mkdir -p /home/enteroak/kafka_2.11-0.10.0.1/data/kafka-logs/1
+mkdir -p /home/enteroak/kafka_2.11-0.10.0.1/data/kafka-logs/2
+
+</code>
+
+==== zookeeper cluster 설정 ====
+<code bash>
+vi zookeeper.properties
+------------------------------
+initLimit=5
+syncLimit=2
+dataDir=/home/enteroak/kafka_2.11-0.10.0.1/data/zookeeper
+clientPort=2181
+maxClientCnxns=0
+
+server.1=enteroak-trans-01:2888:3888
+server.2=enteroak-trans-02:2888:3888
+server.3=enteroak-trans-03:2888:3888
+------------------------------
+
+# server.1(enteroak-trans-01) 장비
+echo '1' > /home/enteroak/kafka_2.11-0.10.0.1/data/zookeeper/myid
+# server.2(enteroak-trans-02) 장비
+echo '2' > /home/enteroak/kafka_2.11-0.10.0.1/data/zookeeper/myid
+# server.3(enteroak-trans-03) 장비
+echo '3' > /home/enteroak/kafka_2.11-0.10.0.1/data/zookeeper/myid
+</code>
+
+==== kafka cluster 설정 ====
+<code bash>
+vi server.properties
+------------------------------
+# 서버별로 id 값이 unique 해야 함.
+broker.id=1
+...
+...
+
+# kafka 데이터 저장소
+log.dirs=/home/enteroak/kafka_2.11-0.10.0.1/data/kafka-logs/1,/home/enteroak/kafka_2.11-0.10.0.1/data/kafka-logs/2
+  
+# zookeeper cluster 정보 등록
+zookeeper.connect=enteroak-trans-01:2181,enteroak-trans-02:2181,enteroak-trans-03:2181
+------------------------------
+</code>
+
+==== 기동 / 종료 ====
+zookeeper 기동
+<code bash startZookeeper.sh>
+
+#!/usr/bin/env bash
+
+KAFKA_HOME=/home/enteroak/kafka_2.11-0.10.0.1
+
+${KAFKA_HOME}/bin/zookeeper-server-start.sh -daemon ${KAFKA_HOME}/config/zookeeper.properties
+
+</code>
+
+zookeeper 종료
+<code bash stopZookeeper.sh>
+
+#!/usr/bin/env bash
+
+KAFKA_HOME=/home/enteroak/kafka_2.11-0.10.0.1
+
+${KAFKA_HOME}/bin/zookeeper-server-stop.sh
+
+</code>
+
+kafka 기동
+<code bash startKafka.sh>
+
+#!/usr/bin/env bash
+
+KAFKA_HOME=/home/enteroak/kafka_2.11-0.10.0.1
+
+${KAFKA_HOME}/bin/kafka-server-start.sh -daemon ${KAFKA_HOME}/config/server.properties
+
+</code>
+
+kafka 종료
+<code bash stopKafka.sh>
+
+#!/usr/bin/env bash
+
+KAFKA_HOME=/home/enteroak/kafka_2.11-0.10.0.1
+
+${KAFKA_HOME}/bin/kafka-server-stop.sh
+
+</code>
+
+==== kafka-manager ====
+작성 필요함..
+[[https://github.com/yahoo/kafka-manager|kafka-manager]]
+
+==== kafka-offset-manager ====
+작성 필요함..
+
+
+==== kafka 운영 관련 정보 ====
+
+- broker config
+  log.retention.hours : 메시지의 수명. 수명이 지나면 메시지가 삭제된다. (default. 168)
+  log.retention.bytes : Partition의 물리적 최대 크기. 크기를 초과하면 디스크에서 메시지가 삭제된다. log.retention.bytes x partition의 수는 topic의 물리적 최대 크기가 된다. 이 값이 -1이면 크기는 무제한으로 설정된다. (default. -1)
+  
+  
+  
+- producer config
+  send.buffer.bytes : 
+  queue.buffering.max.ms : 
