@@ -1,0 +1,64 @@
+<code java>
+package com.sktelecom.tos.stream.swing
+
+import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.SparkConf
+import org.apache.spark.streaming.Seconds
+import org.apache.spark.SparkContext
+import com.sktelecom.tos.stream.base.kafka._
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.spark.streaming.kafka010.HasOffsetRanges
+import org.apache.spark.streaming.kafka010.CanCommitOffsets
+
+// http://spark.apache.org/docs/latest/streaming-kafka-0-10-integration.html#kafka-itself
+// http://blog.cloudera.com/blog/2017/06/offset-management-for-apache-kafka-with-apache-spark-streaming/
+// https://www.inovex.de/blog/247-spark-streaming-on-yarn-in-production/
+// http://readme.skplanet.com/?p=12465
+object KafkaDirectApp extends Serializable {
+
+  val kafkaConsumer = Map(
+    "bootstrap.servers" -> "eo-bigdata-01:6667,eo-bigdata-02:6667,eo-bigdata-03:6667",
+    "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
+    "value.deserializer" -> "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+    "group.id" -> "tos_SwingStreamApp_consumer"
+    )
+
+  def createContext(): StreamingContext = {
+
+    val conf = new SparkConf()
+    conf.set("spark.master", "local[2]")
+    conf.setAppName("KafkaDirectApp")
+    val ssc = new StreamingContext(conf, Seconds(5))
+
+    val kafkaDStream = StreamKafkaConsumer(kafkaConsumer)
+      .createDirectStream(ssc, "enteroak-in")
+
+    kafkaDStream
+      .foreachRDD(rdd => {
+//        val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+
+        if (rdd.count() > 0) {
+          rdd.foreachPartition(records => {
+            records.foreach(record => {
+              println(s"record => $record")
+            })
+          })
+//          kafkaDStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
+        }
+
+      })
+
+//    ssc.checkpoint("/tmp") // set checkpoint directory
+    ssc
+  }
+
+  def main(args: Array[String]): Unit = {
+    // Get StreamingContext from checkpoint data or create a new one
+    val ssc = StreamingContext.getOrCreate("/tmp", () => createContext)
+
+    ssc.start()
+    ssc.awaitTermination()
+  }
+
+}
+</code>
