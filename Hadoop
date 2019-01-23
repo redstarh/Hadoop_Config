@@ -1,0 +1,28 @@
+centos 6.8 
+
+groupadd hadoop \\
+useradd -g hadoop hadoop \\
+passwd hadoop \\
+passwd 입력 \\
+
+^ software  ^ enteroak-hadoop-01  ^ enteroak-hadoop-02  ^ enteroak-hadoop-03   ^ enteroak-hadoop-04  ^  enteroak-hadoop-05  ^
+| yarn    | O | O |  | | |
+| name node    | O | O |  |  |  |
+| data node    |  |  | O | O | O |
+| journal node    | O | O | O | | |
+| zookeeper    | O | O | O | | |
+
+
+
+
+1. jdk 설치 (1.7) \\
+2. wget http://archive.cloudera.com/cdh5/one-click-install/redhat/6/x86_64/cloudera-cdh-5-0.x86_64.rpm \\
+3. yum --nogpgcheck localinstall /home/hadoop/download/cloudera-cdh-5-0.x86_64.rpm \\
+
+4. yum install zookeeper-server (01, 02, 03) \\
+5. yum install hadoop-hdfs-journalnode (01, 02, 03) \\
+6. yum install hadoop-hdfs-namenode (01, 02) \\
+7. yum install hadoop-hdfs-zkfc (01, 02) \\
+8. yum install hadoop-yarn-resourcemanager (01, 02) \\
+9. yum install hadoop-yarn-nodemanager hadoop-hdfs-datanode hadoop-mapreduce (03, 04, 05) \\
+
