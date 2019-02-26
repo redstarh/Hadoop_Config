@@ -1,2 +1,5 @@
-winutils 요  오후 01:36
-윈도우에 hadoop_home으로 설정
+1. winutils.exe를 HADOOP_HOME/bin폴더에 복사.(http://public-repo-1.hortonworks.com/hdp-win-alpha/winutils.exe)
+
+2. HADOOP_HOME environment variable 설정.
+
+ex) HADOOP_HOME=C:\hadoop-2.7.3
