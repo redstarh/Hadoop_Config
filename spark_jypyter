@@ -1,0 +1,15 @@
+pip install pyspark findspark
+
+import findspark
+findspark.init()
+
+import pyspark
+sc = pyspark.SparkContext(appName="myAppName")
+
+# for python2
+import os
+execfile(os.path.join(os.environ["SPARK_HOME"], 'python/pyspark/shell.py'))
+
+# for python3
+import os
+exec(open(os.path.join(os.environ["SPARK_HOME"], 'python/pyspark/shell.py')).read())
