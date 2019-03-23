@@ -111,3 +111,5 @@ to
 ```shell
 plugins=(git zsh-syntax-highlighting)
 ```
+shell경로에서 사용자 제외하고 표시
+https://beomi.github.io/2018/01/30/Hide-username-on-MAC-terminal/
